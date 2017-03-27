@@ -13,13 +13,14 @@ def topology_core_id():
                      'cpu5': "/sys/devices/system/cpu/cpu5/topology/core_id",
                      'cpu6': "/sys/devices/system/cpu/cpu6/topology/core_id",
                      'cpu7': "/sys/devices/system/cpu/cpu7/topology/core_id"}
-    data_dict=dict()
+    data=list()
     for e,f in cpu_core_id.iteritems():
         with open(f,'r') as content:
             # print e, f
-            data_dict[e]=content.readline().strip()
+            v={"SensorName": e+"_topology_core_id", "SensorValue": content.readline().strip()}
+            data.append(v)
 
-    return {"topology_core_id":data_dict}
+    return data
 
 def topology_core_siblings():
     cpu_core_siblings = {'cpu0': "/sys/devices/system/cpu/cpu0/topology/core_siblings_list",
@@ -30,13 +31,14 @@ def topology_core_siblings():
                      'cpu5': "/sys/devices/system/cpu/cpu5/topology/core_siblings_list",
                      'cpu6': "/sys/devices/system/cpu/cpu6/topology/core_siblings_list",
                      'cpu7': "/sys/devices/system/cpu/cpu7/topology/core_siblings_list"}
-    data_dict=dict()
+    data=list()
     for e,f in cpu_core_siblings.iteritems():
         with open(f,'r') as content:
             # print e, f
-            data_dict[e]=content.readline().strip()
+            v = {"SensorName": e+"_topology_core_siblings", "SensorValue": content.readline().strip()}
+            data.append(v)
 
-    return {"topology_core_siblings":data_dict}
+    return data
 
 
 def topology_thread_siblings():
@@ -48,14 +50,16 @@ def topology_thread_siblings():
                      'cpu5': "/sys/devices/system/cpu/cpu5/topology/thread_siblings_list",
                      'cpu6': "/sys/devices/system/cpu/cpu6/topology/thread_siblings_list",
                      'cpu7': "/sys/devices/system/cpu/cpu7/topology/thread_siblings_list"}
-    data_dict=dict()
+    data=list()
     for e,f in cpu_thread_siblings.iteritems():
         with open(f,'r') as content:
             # print e, f
-            data_dict[e]=content.readline().strip()
-    return {"topology_thread_siblings":data_dict}
+            v = {"SensorName": e+"_topology_thread_siblings", "SensorValue": content.readline().strip()}
+            data.append(v)
+    return data
 
 def read_cpufreq():
+
     cpu_curr_freq = {'cpu0':"/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq",
             'cpu1':"/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq",
             'cpu2':"/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq",
@@ -64,12 +68,13 @@ def read_cpufreq():
             'cpu5':"/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq",
             'cpu6':"/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq",
             'cpu7':"/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq"}
-    data_dict=dict()
+    data=list()
     for e,f in cpu_curr_freq.iteritems():
         with open(f,'r') as content:
             # print e, f
-            data_dict[e]=content.readline().strip()
-    return {"cpu": data_dict}
+            v= {"SensorName": e+"_freq", "SensorValue": content.readline().strip()}
+            data.append(v)
+    return data
 
 
 
@@ -83,12 +88,13 @@ def read_core_thermal_throttle_count():
             'cpu5':"/sys/devices/system/cpu/cpu5/thermal_throttle/core_throttle_count",
             'cpu6':"/sys/devices/system/cpu/cpu6/thermal_throttle/core_throttle_count",
             'cpu7':"/sys/devices/system/cpu/cpu7/thermal_throttle/core_throttle_count"}
-    data_dict=dict()
+    data=list()
     for e,f in cpu_thermal_throttle_count.iteritems():
         with open(f,'r') as content:
             # print e, f
-            data_dict[e]=content.readline().strip()
-    return {"read_core_thermal_throttle_count": data_dict}
+            v = {"SensorName": e+"_core_thermal_throttle_count", "SensorValue": content.readline().strip()}
+            data.append(v)
+    return data
 
 def read_pkg_thermal_throttle_count():
     pkg_thermal_throttle_count = {'cpu0':"/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count",
@@ -99,49 +105,48 @@ def read_pkg_thermal_throttle_count():
             'cpu5':"/sys/devices/system/cpu/cpu5/thermal_throttle/package_throttle_count",
             'cpu6':"/sys/devices/system/cpu/cpu6/thermal_throttle/package_throttle_count",
             'cpu7':"/sys/devices/system/cpu/cpu7/thermal_throttle/package_throttle_count"}
-    data_dict=dict()
+    data=list()
     for e,f in pkg_thermal_throttle_count.iteritems():
         with open(f,'r') as content:
             # print e, f
-            data_dict[e]=content.readline().strip()
-    return {"read_pkg_thermal_throttle_count":data_dict}
-
-
-
+            v = {"SensorName": e+"_pkg_thermal_throttle_count", "SensorValue": content.readline().strip()}
+            data.append(v)
+    return data
 
 
 def read_sensors():
     sensors.init()
-    sensor_data = list()
+    table = list()
     try:
         for chip in sensors.iter_detected_chips():
             #print '%s at %s' % (chip, chip.adapter_name)
             source = '%s at %s'% (chip, chip.adapter_name)
-            data_list = list()
+            #data_list = list()
             for feature in chip:
              #   print '  %s: %.2f' % (feature.label, feature.get_value())
-                data_list.append({feature.label:feature.get_value()})
-            sensor_data .append({source:data_list})
+                v = {"SensorName": feature.label+"@"+source, "SensorValue":feature.get_value()}
+                table.append(v)
 
     finally:
         sensors.cleanup()
 
-    return sensor_data
+    return table
 
 
 topology_info = list()
-topology_info.append(topology_core_id())
-topology_info.append(topology_core_siblings())
-topology_info.append(topology_thread_siblings())
+topology_info.extend(topology_core_id())
+topology_info.extend(topology_core_siblings())
+topology_info.extend(topology_thread_siblings())
 
 @app.route('/sensors', methods=['GET'])
 def get_sensordata():
-    sensor = read_sensors()
-    sensor.append(read_cpufreq())
-    sensor.append(read_core_thermal_throttle_count())
-    sensor.append(read_pkg_thermal_throttle_count())
-    sensor.append(topology_info)
-    return jsonify(sensor)
+    data = list()
+    data.extend(topology_info)
+    data.extend(read_cpufreq())
+    data.extend(read_core_thermal_throttle_count())
+    data.extend(read_pkg_thermal_throttle_count())
+    data.extend(read_sensors())
+    return jsonify(data)
 
 
 # def index():
@@ -149,13 +154,19 @@ def get_sensordata():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
-    # topology_core_siblings()
-    # topology_core_id()
-    # topology_thread_siblings()
-    #print(read_cpufreq())
-    # read_core_thermal_throttle_count()
-    # read_pkg_thermal_throttle_count()
+    # print(topology_core_siblings())
+    # print(topology_core_id())
+    # print(topology_thread_siblings())
+    # print(read_cpufreq())
+    # print(read_core_thermal_throttle_count())
+    # print(read_pkg_thermal_throttle_count())
     #print(read_sensors())
-    # l = read_sensors()
-    # l.append(read_cpufreq())
-    # print l
+
+    # data = topology_core_siblings()
+    # data.update(topology_core_id())
+    # data.update(topology_thread_siblings())
+    # data.update(read_cpufreq())
+    # data.update(read_core_thermal_throttle_count())
+    # data.update(read_pkg_thermal_throttle_count())
+    # data.update(read_sensors())
+    # print data
