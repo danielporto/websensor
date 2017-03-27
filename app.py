@@ -19,7 +19,7 @@ def topology_core_id():
             # print e, f
             data_dict[e]=content.readline().strip()
 
-    return data_dict
+    return {"topology_core_id":data_dict}
 
 def topology_core_siblings():
     cpu_core_siblings = {'cpu0': "/sys/devices/system/cpu/cpu0/topology/core_siblings_list",
@@ -36,7 +36,7 @@ def topology_core_siblings():
             # print e, f
             data_dict[e]=content.readline().strip()
 
-    return data_dict
+    return {"topology_core_siblings":data_dict}
 
 
 def topology_thread_siblings():
@@ -53,7 +53,7 @@ def topology_thread_siblings():
         with open(f,'r') as content:
             # print e, f
             data_dict[e]=content.readline().strip()
-    return data_dict
+    return {"topology_thread_siblings":data_dict}
 
 def read_cpufreq():
     cpu_curr_freq = {'cpu0':"/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq",
@@ -69,7 +69,7 @@ def read_cpufreq():
         with open(f,'r') as content:
             # print e, f
             data_dict[e]=content.readline().strip()
-    return data_dict
+    return {"cpu": data_dict}
 
 
 
@@ -88,7 +88,7 @@ def read_core_thermal_throttle_count():
         with open(f,'r') as content:
             # print e, f
             data_dict[e]=content.readline().strip()
-    return data_dict
+    return {"read_core_thermal_throttle_count": data_dict}
 
 def read_pkg_thermal_throttle_count():
     pkg_thermal_throttle_count = {'cpu0':"/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count",
@@ -104,7 +104,7 @@ def read_pkg_thermal_throttle_count():
         with open(f,'r') as content:
             # print e, f
             data_dict[e]=content.readline().strip()
-    return data_dict
+    return {"read_pkg_thermal_throttle_count":data_dict}
 
 
 
@@ -129,10 +129,18 @@ def read_sensors():
     return sensor_data
 
 
+topology_info = list()
+topology_info.append(topology_core_id())
+topology_info.append(topology_core_siblings())
+topology_info.append(topology_thread_siblings())
 
 @app.route('/sensors', methods=['GET'])
 def get_sensordata():
     sensor = read_sensors()
+    sensor.append(read_cpufreq())
+    sensor.append(read_core_thermal_throttle_count())
+    sensor.append(read_pkg_thermal_throttle_count())
+    sensor.append(topology_info)
     return jsonify(sensor)
 
 
@@ -140,11 +148,14 @@ def get_sensordata():
 # 	return "Hello World!"
 
 if __name__ == '__main__':
-    # app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=True)
     # topology_core_siblings()
     # topology_core_id()
     # topology_thread_siblings()
-    print read_cpufreq()
+    #print(read_cpufreq())
     # read_core_thermal_throttle_count()
     # read_pkg_thermal_throttle_count()
-    print read_sensors()
+    #print(read_sensors())
+    # l = read_sensors()
+    # l.append(read_cpufreq())
+    # print l
