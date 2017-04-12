@@ -9,7 +9,7 @@ app = Flask(__name__)
 def read_data():
 
     while True:
-        with open(args['pipe'],'rw') as f
+        with open(args['pipe'],'rw') as f:
             l = f.readline()
             if l[:3]=='>>!': #find the header
                 keys = l.split(';')
