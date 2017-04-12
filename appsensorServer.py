@@ -17,7 +17,8 @@ def read_data():
                 values = l2.split(';')
                 data = list()
                 for i in range(1,len(2)):
-                    # print e, f
+                    print keys
+                    print values
                     v = {"SensorName": keys[i], "SensorValue": values[i].strip()}
                     data.append(v)
                 return data
