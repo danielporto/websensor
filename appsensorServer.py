@@ -11,9 +11,12 @@ def last_log(file_path):
     global nelements
 
     logline=list()
-    with open(file_path,'r') as content: #only care about the most recent value
-        if content[:3] == '>> ':
-            logline = content[3:]
+    with open(file_path,'r') as fobj: #only care about the most recent value
+        for content in fobj:
+            print content[:3]
+            if content[:3] == '>> ':
+                logline = content[3:]
+                print logline
 
     if not logline:
         return
@@ -23,7 +26,7 @@ def last_log(file_path):
         nelements=len(header)
 
     values = [v.strip() for v in logline.split(';')]
-    data = dict()
+    data = list()
     for index in range(nelements):
         v = {"SensorName": header[index], "SensorValue": values[index]}
         data.append(v)
@@ -38,12 +41,12 @@ def data_header(file_path):
             return header
 
 
-def read_data():
-    llog = last_log(args['log'])
+def read_data(log):
+    llog = last_log(log)
     sensor_tm = 0
-    for s in last_log():
+    for s in llog:
         if s['SensorName']=='Timestamp':
-            sensor_tm = int(s['SensorValue'])
+            sensor_tm = int(s['SensorValue'])/1000
             break
 
     log_timestamp = time.time()
@@ -57,7 +60,7 @@ def read_data():
 @app.route('/sensors', methods=['GET'])
 def get_sensordata():
     data = list()
-    data.extend(read_data())
+    data.extend(read_data(args['log']))
     return jsonify(data)
 
 
@@ -69,6 +72,7 @@ if __name__ == '__main__':
 
 
     args = vars(parser.parse_args())
-
+    header = ""
+    nelements= ""
     app.run(host='0.0.0.0', port=int(args['port']), debug=True)
 
