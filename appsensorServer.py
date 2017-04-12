@@ -16,7 +16,7 @@ def last_log(file_path):
             #print content[:3]
             if content[:3] == '>> ':
                 logline = content[3:]
-                print logline
+                #print logline
 
     if not logline:
         return
@@ -26,11 +26,11 @@ def last_log(file_path):
         nelements=len(header)-1 #remove the last element which is empty
 
     values = [v.strip() for v in logline.split(';')]
-    print values
+    #print values
     data = list()
     for index in range(nelements):
         v = {"SensorName": header[index], "SensorValue": values[index]}
-        print v
+        #print v
         data.append(v)
 
     return data
@@ -46,7 +46,7 @@ def data_header(file_path):
 def read_data(log):
     global nelements
     llog = last_log(log)
-    service_timestamp = 0.0
+    service_timestamp = ""
     v = [{'SensorName': 'Timestamp', 'SensorValue': ''},
          {'SensorName': 'Throughput (op/sec)', 'SensorValue': ''},
          {'SensorName': 'Max Throughput', 'SensorValue': ''},
@@ -73,15 +73,16 @@ def read_data(log):
     curr_timestamp = time.time() #time in seconds to compare with the java time
     for s in llog:
         if s['SensorName']=='Timestamp':
-            service_timestamp = int(s['SensorValue'])/1000.0
+            service_timestamp = str(int(s['SensorValue'])/1000.0)
+            s['SensorValue']=service_timestamp
             break
     #print llog
-    print service_timestamp
-    print curr_timestamp
+    #print service_timestamp
+    #print curr_timestamp
 
     # old sensor info
     if curr_timestamp - service_timestamp > 1.5:
-        v[0] ={'SensorName': 'Timestamp', 'SensorValue': str(service_timestamp)}
+        v[0] ={'SensorName': 'Timestamp', 'SensorValue': service_timestamp}
         return v
 
     return llog
