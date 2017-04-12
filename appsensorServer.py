@@ -66,8 +66,8 @@ def read_data(log):
          {'SensorName': 'Err Accept latency', 'SensorValue': ''}]
 
     #no sensor info
-        if not llog:
-            return v
+    if not llog:
+        return v
 
     #timely sensor info
     curr_timestamp = time.time() #time in seconds to compare with the java time
