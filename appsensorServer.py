@@ -44,18 +44,46 @@ def data_header(file_path):
 
 
 def read_data(log):
+    global nelements
     llog = last_log(log)
-    sensor_tm = 0
+    service_timestamp = 0.0
+    v = [{'SensorName': 'Timestamp', 'SensorValue': ''},
+         {'SensorName': 'Throughput (op/sec)', 'SensorValue': ''},
+         {'SensorName': 'Max Throughput', 'SensorValue': ''},
+         {'SensorName': 'Total latency(us)', 'SensorValue': ''},
+         {'SensorName': 'Err Total latency', 'SensorValue': ''},
+         {'SensorName': 'Consensus latency (us)', 'SensorValue': ''},
+         {'SensorName': 'Err Consensus latency', 'SensorValue': ''},
+         {'SensorName': 'Pre-consensus latency (us)', 'SensorValue': ''},
+         {'SensorName': 'Err Pre-consensus latency', 'SensorValue': ''},
+         {'SensorName': 'Pos-consensus latency (us)', 'SensorValue': ''},
+         {'SensorName': 'Err Pos-consensus latency', 'SensorValue': ''},
+         {'SensorName': 'Propose latency (us)', 'SensorValue': ''},
+         {'SensorName': 'Err Propose latency', 'SensorValue': ''},
+         {'SensorName': 'Write latency (us)', 'SensorValue': ''},
+         {'SensorName': 'Err Write latency', 'SensorValue': ''},
+         {'SensorName': 'Accept latency (us)', 'SensorValue': ''},
+         {'SensorName': 'Err Accept latency', 'SensorValue': ''}]
+
+    #no sensor info
+        if not llog:
+            return v
+
+    #timely sensor info
+    curr_timestamp = time.time() #time in seconds to compare with the java time
     for s in llog:
         if s['SensorName']=='Timestamp':
-            sensor_tm = int(s['SensorValue'])/1000.0
+            service_timestamp = int(s['SensorValue'])/1000.0
             break
-
-    log_timestamp = time.time()
     #print llog
-    print sensor_tm
-    print log_timestamp
-    #v =  {"SensorName": 'linha', "SensorValue": 'valor'}
+    print service_timestamp
+    print curr_timestamp
+
+    # old sensor info
+    if curr_timestamp - service_timestamp > 1.5:
+        v[0] ={'SensorName': 'Timestamp', 'SensorValue': str(service_timestamp)}
+        return v
+
     return llog
 
 
