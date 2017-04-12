@@ -48,11 +48,11 @@ def read_data(log):
     sensor_tm = 0
     for s in llog:
         if s['SensorName']=='Timestamp':
-            sensor_tm = int(s['SensorValue'])/1000
+            sensor_tm = int(s['SensorValue'])/1000.0
             break
 
     log_timestamp = time.time()
-    print llog
+    #print llog
     print sensor_tm
     print log_timestamp
     #v =  {"SensorName": 'linha', "SensorValue": 'valor'}
