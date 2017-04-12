@@ -23,7 +23,7 @@ def last_log(file_path):
 
     if not header:
         header = data_header(file_path)
-        nelements=len(header)
+        nelements=len(header)-1 #remove the last element which is empty
 
     values = [v.strip() for v in logline.split(';')]
     print values
