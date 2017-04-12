@@ -1,39 +1,55 @@
 #!/bin/python
 from flask import Flask, jsonify
 import argparse
-import pyinotify
-import re
-import os
+import time
 app = Flask(__name__)
 
 
 
-class EventHandler (pyinotify.ProcessEvent):
+def last_log(file_path):
+    global header
+    global nelements
 
-    def __init__(self, file_path, *args, **kwargs):
-        super(EventHandler, self).__init__(*args, **kwargs)
-        self.file_path = file_path
-        self._last_position = 0
-        logpats = r'>> '
-        self._logpat = re.compile(logpats)
+    logline=list()
+    with open(file_path,'r') as content: #only care about the most recent value
+        if content[:3] == '>> ':
+            logline = content[3:]
 
-    def process_IN_MODIFY(self, event):
-        print "File changed: ", event.pathname
-        if self._last_position > os.path.getsize(self.file_path):
-            self._last_position = 0
-        with open(self.file_path) as f:
-            f.seek(self._last_position)
-            loglines = f.readlines()
-            print loglines
-            self._last_position = f.tell()
-            groups = (self._logpat.search(line.strip()) for line in loglines)
-            for g in groups:
-                if g:
-                    print g.string
+    if not logline:
+        return
 
+    if not header:
+        header = data_header(file_path)
+        nelements=len(header)
+
+    values = [v.strip() for v in logline.split(';')]
+    data = dict()
+    for index in range(nelements):
+        v = {"SensorName": header[index], "SensorValue": values[index]}
+        data.append(v)
+
+    return data
+
+def data_header(file_path):
+    content = open(file_path).readlines()
+    for line in content:
+        if line[:3] == '>>!':
+            header = [h.strip() for h in line[3:].split(';')]
+            return header
 
 
 def read_data():
+    llog = last_log(args['log'])
+    sensor_tm = 0
+    for s in last_log():
+        if s['SensorName']=='Timestamp':
+            sensor_tm = int(s['SensorValue'])
+            break
+
+    log_timestamp = time.time()
+    print llog
+    print sensor_tm
+    print log_timestamp
     v =  {"SensorName": 'linha', "SensorValue": 'valor'}
 
 
@@ -53,15 +69,6 @@ if __name__ == '__main__':
 
 
     args = vars(parser.parse_args())
-
-    wm = pyinotify.WatchManager()
-    mask = pyinotify.IN_MODIFY
-
-    handler = EventHandler(args['log'])
-    notifier = pyinotify.Notifier(wm, handler)
-
-    wm.add_watch(handler.file_path, mask)
-    notifier.loop()
 
     app.run(host='0.0.0.0', port=int(args['port']), debug=True)
 
