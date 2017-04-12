@@ -50,8 +50,8 @@ def read_data():
     print llog
     print sensor_tm
     print log_timestamp
-    v =  {"SensorName": 'linha', "SensorValue": 'valor'}
-
+    #v =  {"SensorName": 'linha', "SensorValue": 'valor'}
+    return llog
 
 
 @app.route('/sensors', methods=['GET'])
