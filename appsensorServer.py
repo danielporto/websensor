@@ -13,7 +13,7 @@ def last_log(file_path):
     logline=list()
     with open(file_path,'r') as fobj: #only care about the most recent value
         for content in fobj:
-            print content[:3]
+            #print content[:3]
             if content[:3] == '>> ':
                 logline = content[3:]
                 print logline
@@ -26,9 +26,11 @@ def last_log(file_path):
         nelements=len(header)
 
     values = [v.strip() for v in logline.split(';')]
+    print values
     data = list()
     for index in range(nelements):
         v = {"SensorName": header[index], "SensorValue": values[index]}
+        print v
         data.append(v)
 
     return data
