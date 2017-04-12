@@ -9,9 +9,16 @@ app = Flask(__name__)
 def read_data():
 
     while True:
-        with open(args['pipe'],'rw') as f:
+	print "opening file", args['pipe']
+        with open(args['pipe'],'r') as f:
             l = f.readline()
+	    print l
+	    
+	    v =  {"SensorName": 'linha', "SensorValue": l}
+	    return v
             if l[:3]=='>>!': #find the header
+		print l
+		exit(0)
                 keys = l.split(';')
                 l2= f.readline()
                 values = l2.split(';')
@@ -37,7 +44,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", default="", help="port for the sevice", required=True)
-    parser.add_argument("--pip", default="", help="name of pipe to read from", required=True)
+    parser.add_argument("--pipe", default="", help="name of pipe to read from", required=True)
 
 
     args = vars(parser.parse_args())
